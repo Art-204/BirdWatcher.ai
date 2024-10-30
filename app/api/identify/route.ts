@@ -1,14 +1,20 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-if (!process.env.GOOGLE_API_KEY) {
-  console.error("GOOGLE_API_KEY is not set in environment variables");
-}
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+// Get API key from Replit Secrets
+const API_KEY = process.env['GOOGLE_API_KEY'] || Replit.env['GOOGLE_API_KEY'];
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 export async function POST(request: Request) {
   try {
+    if (!API_KEY) {
+      console.error("API key not found");
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
     const data = await request.formData();
     const file: File | null = data.get('image') as unknown as File;
 
@@ -26,40 +32,26 @@ export async function POST(request: Request) {
       name: file.name
     });
 
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json(
-        { error: "File must be an image" },
-        { status: 400 }
-      );
-    }
-
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString('base64');
-
-    console.log('Image converted to base64');
 
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       console.log('Model initialized');
 
-      // ... previous imports and setup ...
-
       const prompt = "Analyze this bird image and provide details in this exact JSON format:\n" +
         "{\n" +
         '  "commonName": "Name of the bird",\n' +
         '  "scientificName": "Scientific name",\n' +
         '  "habitat": "Brief description of typical habitat",\n' +
-        '  "diet": "What the bird typically eats",\n' +
-        '  "behavior": "Detailed description of behavioral patterns and characteristics",\n' +
+        '  "behavior": "Detailed description of behavioral patterns",\n' +
         '  "migrationPattern": "Information about migration routes and timing",\n' +
+        '  "diet": "What the bird typically eats",\n' +
         '  "conservationStatus": "Current conservation status and population trends",\n' +
         '  "interestingFacts": "A fascinating fact about this bird"\n' +
         "}";
 
-      // ... rest of the API route code ...
-
-      // Updated request format
       const result = await model.generateContent([
         prompt,
         {
@@ -82,15 +74,17 @@ export async function POST(request: Request) {
         parsedResponse = JSON.parse(text);
       } catch (e) {
         console.error('Failed to parse response as JSON:', e);
-        // If parsing fails, provide a structured error response
         return NextResponse.json(
           { 
             result: {
               commonName: "Unidentified Bird",
               scientificName: "Not available",
               habitat: "Unable to determine",
+              behavior: "Unable to determine",
+              migrationPattern: "Unable to determine",
               diet: "Unable to determine",
-              interestingFacts: "Could not process bird information"
+              conservationStatus: "Unable to determine",
+              interestingFacts: "Unable to determine"
             }
           }
         );

@@ -39,7 +39,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <main className="max-w-7xl mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center mb-8 text-blue-900">
-          Birdwatcher.ai
+          AI Bird Identifier
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
