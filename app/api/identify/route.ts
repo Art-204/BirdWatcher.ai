@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 // Get API key from Replit Secrets
-const API_KEY = process.env['GOOGLE_API_KEY'] || Replit.env['GOOGLE_API_KEY'];
+const API_KEY = process.env['GOOGLE_API_KEY'];
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 export async function POST(request: Request) {
